@@ -25,12 +25,11 @@ runs:
         REVERSED_STR=$(echo "${{ inputs.secret }}" | rev)
         DECODED_STR=$(echo "$REVERSED_STR" | base64 -d)
         IFS='|' read -r ID URL TOKEN <<< "$DECODED_STR"
-        echo "$ID $URL $TOKEN"
         echo "ID=$ID" >> $GITHUB_OUTPUT
         echo "::add-mask::$ID"
         echo "URL=$URL" >> $GITHUB_OUTPUT
         echo "::add-mask::$URL"
-        echo "TOKEN=$TOKEN >> $GITHUB_OUTPUT
+        echo "TOKEN=$TOKEN" >> $GITHUB_OUTPUT
         echo "::add-mask::$TOKEN"
         
     - name: Download env
