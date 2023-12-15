@@ -7,14 +7,13 @@ inputs:
     default: null
   type: 
     description: ''
-    required: true
+    required: false
     default: dotenv
   filename: 
     description: ''
-    required: true
+    required: false
     default: null
-    
-    
+
 runs:
   using: "composite"
   steps:
@@ -36,8 +35,7 @@ runs:
       shell: bash
       run: |
         curl --location "${{ steps.vault.outputs.URL }}/v1/vwt/${{ steps.vault.outputs.ID }}?type=${{ inputs.type }}" --header "x-api-token: ${{ steps.vault.outputs.TOKEN }}" -o ${{ inputs.filename || steps.vault.outputs.ID }}
-    - run: ls -lah
-      shell: bash
+
     - name: Set Environment Variables
       shell: bash
       id: set-env
