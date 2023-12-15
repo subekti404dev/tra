@@ -1,15 +1,7 @@
 name: 'urVault action'
 description: ''
 inputs:
-  baseurl: 
-    description: ''
-    required: true
-    default: null  
-  token: 
-    description: ''
-    required: true
-    default: null
-  id: 
+  secret: 
     description: ''
     required: true
     default: null
@@ -26,17 +18,31 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Parse Secret
+      id: vault
+      shell: bash
+      run: |
+        REVERSED_STR=$(echo "${{ inputs.secret }}" | rev)
+        DECODED_STR=$(echo "$REVERSED_STR" | base64 -d)
+        IFS='|' read -r ID URL TOKEN <<< "$DECODED_STR"
+        echo "ID=$ID" >> $GITHUB_OUTPUT
+        echo "::add-mask::$ID"
+        echo "URL=$URL" >> $GITHUB_OUTPUT
+        echo "::add-mask::$URL"
+        echo "TOKEN=$TOKEN >> $GITHUB_OUTPUT
+        echo "::add-mask::$TOKEN"
+        
     - name: Download env
       shell: bash
       run: |
-        curl --location "${{ inputs.baseurl }}/v1/vwt/${{ inputs.id }}?type=${{ inputs.type }}" --header "x-api-token: ${{ inputs.token }}" -o ${{ inputs.filename || inputs.id }}
+        curl --location "${{ steps.vault.outputs.URL }}/v1/vwt/${{ steps.vault.outputs.ID }}?type=${{ inputs.type }}" --header "x-api-token: ${{ steps.vault.outputs.TOKEN }}" -o ${{ inputs.filename || steps.vault.outputs.ID }}
     - run: ls -lah
       shell: bash
     - name: Set Environment Variables
       shell: bash
       id: set-env
       run: |
-        curl --location "${{ inputs.baseurl }}/v1/vwt/${{ inputs.id }}?type=dotenv" --header "x-api-token: ${{ inputs.token }}" -o .tmp.env
+        curl --location "${{ steps.vault.outputs.URL }}/v1/vwt/${{ steps.vault.outputs.ID }}?type=dotenv" --header "x-api-token: ${{ steps.vault.outputs.TOKEN }}" -o .tmp.env
         while IFS= read -r line || [[ -n "$line" ]]; do
           # Extract variable name and value
           var_name=$(echo "$line" | cut -d '=' -f 1)
